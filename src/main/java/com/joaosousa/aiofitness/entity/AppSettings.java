@@ -1,0 +1,18 @@
+package com.joaosousa.aiofitness.entity;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+@Table(name = "app_settings")
+public class AppSettings {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "targets_workout_per_week")
+    private int targetsWorkoutPerWeek;
+}
