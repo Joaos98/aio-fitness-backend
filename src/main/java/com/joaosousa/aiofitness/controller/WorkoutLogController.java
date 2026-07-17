@@ -1,6 +1,7 @@
 package com.joaosousa.aiofitness.controller;
 
 import com.joaosousa.aiofitness.dto.HeatmapDayDto;
+import com.joaosousa.aiofitness.dto.StreakDto;
 import com.joaosousa.aiofitness.entity.WorkoutLog;
 import com.joaosousa.aiofitness.service.WorkoutLogService;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +39,10 @@ public class WorkoutLogController {
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate) {
         return workoutLogService.getHeatmapData(startDate, endDate);
+    }
+
+    @GetMapping("/streaks")
+    public StreakDto getStreaks() {
+        return workoutLogService.calculateStreaks();
     }
 }
