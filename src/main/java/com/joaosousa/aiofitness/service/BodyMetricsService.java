@@ -21,4 +21,8 @@ public class BodyMetricsService {
     public List<BodyMetrics> findAll() {
         return bodyMetricsRepository.findAll();
     }
+
+    public void delete(Long id) {
+        bodyMetricsRepository.deleteById(id);
+    }
 }

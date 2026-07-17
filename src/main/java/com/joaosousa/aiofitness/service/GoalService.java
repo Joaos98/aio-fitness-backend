@@ -1,6 +1,7 @@
 package com.joaosousa.aiofitness.service;
 
 import com.joaosousa.aiofitness.entity.Goal;
+import com.joaosousa.aiofitness.entity.GoalStatus;
 import com.joaosousa.aiofitness.repository.GoalRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,5 +21,11 @@ public class GoalService {
 
     public List<Goal> findAll() {
         return goalRepository.findAll();
+    }
+
+    public Goal updateStatus(Long id, GoalStatus status) {
+        Goal goal = goalRepository.findById(id).orElseThrow();
+        goal.setStatus(status);
+        return goalRepository.save(goal);
     }
 }

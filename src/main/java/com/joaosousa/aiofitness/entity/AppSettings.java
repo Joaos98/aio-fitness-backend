@@ -13,6 +13,6 @@ public class AppSettings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "targets_workout_per_week")
-    private int targetsWorkoutPerWeek;
+    @Column(name = "target_workouts_per_week")
+    private int targetWorkoutsPerWeek;
 }

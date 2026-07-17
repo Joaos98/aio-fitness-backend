@@ -21,4 +21,8 @@ public class WorkoutLogService {
     public List<WorkoutLog> findAll() {
         return workoutLogRepository.findAll();
     }
+
+    public void delete(Long id) {
+        workoutLogRepository.deleteById(id);
+    }
 }

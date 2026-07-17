@@ -4,8 +4,6 @@ import com.joaosousa.aiofitness.entity.AppSettings;
 import com.joaosousa.aiofitness.repository.AppSettingsRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class AppSettingsService {
     private final AppSettingsRepository appSettingsRepository;
@@ -14,11 +12,13 @@ public class AppSettingsService {
         this.appSettingsRepository = appSettingsRepository;
     }
 
-    public AppSettings save(AppSettings appSettings) {
-        return appSettingsRepository.save(appSettings);
+    public AppSettings get() {
+        return appSettingsRepository.findById(1L).orElseThrow();
     }
 
-    public List<AppSettings> findAll() {
-        return appSettingsRepository.findAll();
+    public AppSettings update(AppSettings appSettings) {
+        AppSettings existing = appSettingsRepository.findById(1L).orElseThrow();
+        existing.setTargetWorkoutsPerWeek(appSettings.getTargetWorkoutsPerWeek());
+        return appSettingsRepository.save(existing);
     }
 }
