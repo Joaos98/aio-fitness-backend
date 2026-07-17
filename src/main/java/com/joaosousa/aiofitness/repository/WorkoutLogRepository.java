@@ -21,4 +21,28 @@ public interface WorkoutLogRepository extends JpaRepository<WorkoutLog, Long> {
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
+
+    @Query("SELECT COUNT(DISTINCT wl.logDate) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate")
+    int countDistinctWorkoutDates(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    @Query("SELECT COUNT(wl) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate")
+    long countWorkouts(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT MAX(wl.durationMinutes) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate")
+    Integer maxDuration(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT AVG(wl.durationMinutes) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate")
+    Double averageDuration(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT SUM(wl.durationMinutes) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate")
+    Long sumDuration(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT AVG(wl.calories) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate AND wl.calories IS NOT NULL")
+    Double averageCalories(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT wl.workoutType.name FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate GROUP BY wl.workoutType.name ORDER BY COUNT(wl) DESC LIMIT 1")
+    String mostFrequentType(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }
