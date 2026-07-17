@@ -1,9 +1,11 @@
 package com.joaosousa.aiofitness.controller;
 
+import com.joaosousa.aiofitness.dto.HeatmapDayDto;
 import com.joaosousa.aiofitness.entity.WorkoutLog;
 import com.joaosousa.aiofitness.service.WorkoutLogService;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -29,5 +31,12 @@ public class WorkoutLogController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         workoutLogService.delete(id);
+    }
+
+    @GetMapping("/heatmap")
+    public List<HeatmapDayDto> getHeatmap(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate) {
+        return workoutLogService.getHeatmapData(startDate, endDate);
     }
 }
