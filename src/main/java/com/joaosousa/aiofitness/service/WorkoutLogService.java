@@ -6,7 +6,9 @@ import com.joaosousa.aiofitness.dto.WorkoutLogDto;
 import com.joaosousa.aiofitness.entity.WorkoutLog;
 import com.joaosousa.aiofitness.repository.AppSettingsRepository;
 import com.joaosousa.aiofitness.repository.WorkoutLogRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -35,6 +37,18 @@ public class WorkoutLogService {
 
     public void delete(Long id) {
         workoutLogRepository.deleteById(id);
+    }
+
+    public WorkoutLog updateWorkoutLog(Long id, WorkoutLog updated) {
+        WorkoutLog existing = workoutLogRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        existing.setLogDate(updated.getLogDate());
+        existing.setWorkoutType(updated.getWorkoutType());
+        existing.setDurationMinutes(updated.getDurationMinutes());
+        existing.setCalories(updated.getCalories());
+
+        return workoutLogRepository.save(existing);
     }
 
     public List<HeatmapDayDto> getHeatmapData(LocalDate startDate, LocalDate endDate) {

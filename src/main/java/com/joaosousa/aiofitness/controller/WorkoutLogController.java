@@ -34,6 +34,11 @@ public class WorkoutLogController {
         workoutLogService.delete(id);
     }
 
+    @PutMapping("/{id}")
+    public WorkoutLog updateWorkoutLog(@PathVariable Long id, @RequestBody WorkoutLog updated) {
+        return workoutLogService.updateWorkoutLog(id, updated);
+    }
+
     @GetMapping("/heatmap")
     public List<HeatmapDayDto> getHeatmap(
             @RequestParam LocalDate startDate,

@@ -1,6 +1,5 @@
 package com.joaosousa.aiofitness.controller;
 
-import com.joaosousa.aiofitness.dto.BodyMetricsWithInsightDto;
 import com.joaosousa.aiofitness.entity.BodyMetrics;
 import com.joaosousa.aiofitness.service.BodyMetricsService;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +17,8 @@ public class BodyMetricsController {
     }
 
     @GetMapping
-    public List<BodyMetricsWithInsightDto> findAll() {
-        return bodyMetricsService.getAllWithInsights();
+    public List<BodyMetrics> findAll() {
+        return bodyMetricsService.findAll();
     }
 
     @PostMapping
@@ -30,5 +29,10 @@ public class BodyMetricsController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         bodyMetricsService.delete(id);
+    }
+
+    @PutMapping("/{id}")
+    public BodyMetrics updateBodyMetrics(@PathVariable Long id, @RequestBody BodyMetrics updated) {
+        return bodyMetricsService.updateBodyMetrics(id, updated);
     }
 }

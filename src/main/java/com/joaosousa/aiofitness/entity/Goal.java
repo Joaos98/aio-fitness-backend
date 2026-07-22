@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -27,4 +28,10 @@ public class Goal {
 
     @Enumerated(EnumType.STRING)
     private GoalStatus status;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "start_value")
+    private Double startValue;
 }

@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class WorkoutLog {
     @Id
     @GeneratedValue
-    private Long Id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "workout_type_id")

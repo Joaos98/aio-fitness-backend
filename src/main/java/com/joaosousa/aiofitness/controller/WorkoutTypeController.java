@@ -2,6 +2,7 @@ package com.joaosousa.aiofitness.controller;
 
 import com.joaosousa.aiofitness.entity.WorkoutType;
 import com.joaosousa.aiofitness.service.WorkoutTypeService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,5 +25,11 @@ public class WorkoutTypeController {
     @PostMapping
     public WorkoutType save(@RequestBody WorkoutType workoutType) {
         return workoutTypeService.save(workoutType);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteWorkoutType(@PathVariable Long id) {
+        workoutTypeService.deleteWorkoutType(id);
+        return ResponseEntity.noContent().build();
     }
 }

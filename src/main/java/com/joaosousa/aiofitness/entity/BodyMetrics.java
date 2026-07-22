@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -32,4 +33,10 @@ public class BodyMetrics {
 
     @Column(name = "body_fat_pct")
     private Double bodyFatPct;
+
+    @Column(name = "insight_text", columnDefinition = "TEXT")
+    private String insightText;
+
+    @Column(name = "insight_generated_at")
+    private LocalDateTime insightGeneratedAt;
 }
