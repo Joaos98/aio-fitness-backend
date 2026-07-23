@@ -9,5 +9,4 @@ public class WorkoutLogDto {
     private String type;
     private String colorHex;
     private Integer durationMinutes;
-    private Integer calories;
 }

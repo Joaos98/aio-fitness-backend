@@ -2,6 +2,8 @@ package com.joaosousa.aiofitness.service;
 
 import com.joaosousa.aiofitness.entity.BodyMetrics;
 import com.joaosousa.aiofitness.repository.BodyMetricsRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,7 +26,10 @@ public class BodyMetricsService {
         BodyMetrics saved = bodyMetricsRepository.save(bodyMetrics);
 
         InsightService.InsightResult result = insightService.generateInsight(saved);
-        saved.setInsightText(result.text());
+        String storedText = result.verdict() != null
+                ? "VERDICT:" + result.verdict() + "\nINSIGHT:" + result.text()
+                : result.text();
+        saved.setInsightText(storedText);
         saved.setInsightGeneratedAt(result.generatedAt());
 
         return bodyMetricsRepository.save(saved);
@@ -35,14 +40,17 @@ public class BodyMetricsService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         InsightService.InsightResult result = insightService.generateInsight(entry);
-        entry.setInsightText(result.text());
+        String storedText = result.verdict() != null
+                ? "VERDICT:" + result.verdict() + "\nINSIGHT:" + result.text()
+                : result.text();
+        entry.setInsightText(storedText);
         entry.setInsightGeneratedAt(result.generatedAt());
 
         return bodyMetricsRepository.save(entry);
     }
 
-    public List<BodyMetrics> findAll() {
-        return bodyMetricsRepository.findAll(Sort.by(Sort.Direction.ASC, "measuredOn"));
+    public Page<BodyMetrics> findAll(Pageable pageable) {
+        return bodyMetricsRepository.findAll(pageable);
     }
 
     public BodyMetrics updateBodyMetrics(Long id, BodyMetrics updated) {

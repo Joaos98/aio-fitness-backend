@@ -16,5 +16,4 @@ public class WorkoutStatsDto {
     private String mostFrequentTypeThisYear;
     private long totalMinutesThisMonth;
     private long totalMinutesThisYear;
-    private Double averageCaloriesBurnedThisMonth; // null if no calories logged
 }

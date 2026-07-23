@@ -4,6 +4,10 @@ import com.joaosousa.aiofitness.dto.HeatmapDayDto;
 import com.joaosousa.aiofitness.dto.StreakDto;
 import com.joaosousa.aiofitness.entity.WorkoutLog;
 import com.joaosousa.aiofitness.service.WorkoutLogService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -20,8 +24,9 @@ public class WorkoutLogController {
     }
 
     @GetMapping
-    public List<WorkoutLog> findAll() {
-        return workoutLogService.findAll();
+    public Page<WorkoutLog> findAll(
+            @PageableDefault(size = 20, sort = "logDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        return workoutLogService.findAll(pageable);
     }
 
     @PostMapping

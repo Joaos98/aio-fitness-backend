@@ -13,6 +13,8 @@ public interface WorkoutLogRepository extends JpaRepository<WorkoutLog, Long> {
 
     boolean existsByWorkoutType(WorkoutType workoutType);
 
+    boolean existsByLogDateAndWorkoutTypeAndDurationMinutes(LocalDate logDate, WorkoutType workoutType, int durationMinutes);
+
     @Query("SELECT wl FROM WorkoutLog wl JOIN FETCH wl.workoutType WHERE wl.logDate BETWEEN :startDate AND :endDate ORDER BY wl.logDate")
     List<WorkoutLog> findByDateRangeFetched(
             @Param("startDate") LocalDate startDate,
@@ -42,9 +44,6 @@ public interface WorkoutLogRepository extends JpaRepository<WorkoutLog, Long> {
 
     @Query("SELECT SUM(wl.durationMinutes) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate")
     Long sumDuration(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
-    @Query("SELECT AVG(wl.calories) FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate AND wl.calories IS NOT NULL")
-    Double averageCalories(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("SELECT wl.workoutType.name FROM WorkoutLog wl WHERE wl.logDate BETWEEN :startDate AND :endDate GROUP BY wl.workoutType.name ORDER BY COUNT(wl) DESC LIMIT 1")
     String mostFrequentType(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);

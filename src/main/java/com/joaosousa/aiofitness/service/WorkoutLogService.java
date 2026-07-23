@@ -6,6 +6,8 @@ import com.joaosousa.aiofitness.dto.WorkoutLogDto;
 import com.joaosousa.aiofitness.entity.WorkoutLog;
 import com.joaosousa.aiofitness.repository.AppSettingsRepository;
 import com.joaosousa.aiofitness.repository.WorkoutLogRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,8 +33,8 @@ public class WorkoutLogService {
         return workoutLogRepository.save(workoutLog);
     }
 
-    public List<WorkoutLog> findAll() {
-        return workoutLogRepository.findAll();
+    public Page<WorkoutLog> findAll(Pageable pageable) {
+        return workoutLogRepository.findAll(pageable);
     }
 
     public void delete(Long id) {
@@ -46,7 +48,6 @@ public class WorkoutLogService {
         existing.setLogDate(updated.getLogDate());
         existing.setWorkoutType(updated.getWorkoutType());
         existing.setDurationMinutes(updated.getDurationMinutes());
-        existing.setCalories(updated.getCalories());
 
         return workoutLogRepository.save(existing);
     }
@@ -64,8 +65,7 @@ public class WorkoutLogService {
                             .map(wl -> new WorkoutLogDto(
                                     wl.getWorkoutType().getName(),
                                     wl.getWorkoutType().getColorHex(),
-                                    wl.getDurationMinutes(),
-                                    wl.getCalories()
+                                    wl.getDurationMinutes()
                             ))
                             .toList();
 

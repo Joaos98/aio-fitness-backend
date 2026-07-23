@@ -12,6 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,10 @@ public class InsightService {
     private static final String SYSTEM_PROMPT =
         "You are a personal fitness coach. The user tracks body metrics and workouts in a personal app. " +
         "Analyze their latest measurement in context. Write in 2nd person. Be concise, specific, and honest. " +
-        "Maximum 2 paragraphs. " +
+        "Respond in this exact format:\n\n" +
+        "VERDICT: <3-6 word status label summarizing the overall trend and direction, e.g. \"Plateau — slightly regressing\" or \"Strong progress, fat dropping\">\n" +
+        "INSIGHT: <your analysis>\n\n" +
+        "For the INSIGHT, write maximum 2 paragraphs. " +
         "First paragraph: interpret what the data means. Don't list numbers — the user sees them already. " +
         "What patterns emerge? Is anything surprising? How does training connect to body composition changes? " +
         "Second paragraph: one actionable, specific suggestion the user can act on. " +
@@ -38,6 +42,7 @@ public class InsightService {
     private final BodyMetricsRepository bodyMetricsRepository;
     private final WorkoutLogRepository workoutLogRepository;
     private final GoalService goalService;
+    private final AppSettingsService appSettingsService;
 
     @Value("${app.insight.api-key:}")
     private String apiKey;
@@ -47,10 +52,12 @@ public class InsightService {
 
     public InsightService(BodyMetricsRepository bodyMetricsRepository,
                           WorkoutLogRepository workoutLogRepository,
-                          GoalService goalService) {
+                          GoalService goalService,
+                          AppSettingsService appSettingsService) {
         this.bodyMetricsRepository = bodyMetricsRepository;
         this.workoutLogRepository = workoutLogRepository;
         this.goalService = goalService;
+        this.appSettingsService = appSettingsService;
     }
 
     public InsightResult generateInsight(BodyMetrics latest) {
@@ -62,11 +69,26 @@ public class InsightService {
 
         try {
             String text = callGemini(prompt);
-            return new InsightResult(text, latest.getMeasuredOn().atStartOfDay(), false);
+            ParsedInsight parsed = parseRawText(text);
+            return new InsightResult(parsed.verdict(), parsed.text(), latest.getMeasuredOn().atStartOfDay(), false);
+        } catch (RestClientResponseException e) {
+            return new InsightResult(null, apiErrorMessage(e.getStatusCode().value()), latest.getMeasuredOn().atStartOfDay(), true);
         } catch (Exception e) {
-            log.warn("Insight generation failed, using fallback: {}", e.getMessage());
-            return new InsightResult(buildFallback(latest, previous), latest.getMeasuredOn().atStartOfDay(), true);
+            log.warn("Insight generation failed: {}", e.getMessage());
+            return new InsightResult(null,
+                "An unexpected error occurred while generating the insight. Please try again later.",
+                latest.getMeasuredOn().atStartOfDay(), true);
         }
+    }
+
+    private static String apiErrorMessage(int status) {
+        return switch (status) {
+            case 400 -> "Invalid request to insight service. Please try again or regenerate later.";
+            case 401, 403 -> "Insight service authentication failed. Please check the API key.";
+            case 429 -> "Insight service rate limited. Please try again later.";
+            case 503 -> "Insight could not be generated due to high demand. Please try again later.";
+            default -> "Insight service is temporarily unavailable (error " + status + "). Please try again later.";
+        };
     }
 
     // --- prompt builder ---
@@ -134,6 +156,8 @@ public class InsightService {
             if (mostFreq != null) {
                 sb.append("- Most frequent type: ").append(mostFreq).append("\n");
             }
+            int targetPerWeek = appSettingsService.get().getTargetWorkoutsPerWeek();
+            sb.append("- Weekly target: ").append(targetPerWeek).append(" workouts/week\n");
         }
 
         // Goals
@@ -233,35 +257,6 @@ public class InsightService {
         };
     }
 
-    // --- fallback ---
-
-    private String buildFallback(BodyMetrics latest, BodyMetrics previous) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Since your last measurement");
-        if (previous != null) {
-            sb.append(" on ").append(previous.getMeasuredOn()).append(",");
-            boolean any = false;
-            any |= appendDelta(sb, "weight", latest.getWeightKg(), previous.getWeightKg(), "kg");
-            any |= appendDelta(sb, "muscle mass", latest.getMuscleMassKg(), previous.getMuscleMassKg(), "kg");
-            any |= appendDelta(sb, "body fat %", latest.getBodyFatPct(), previous.getBodyFatPct(), "%");
-            if (!any) sb.append(" your metrics held steady.");
-        } else {
-            sb.append(", your metrics were recorded.");
-        }
-        sb.append(" Keep logging consistently and a deeper analysis will appear here.");
-        return sb.toString();
-    }
-
-    private boolean appendDelta(StringBuilder sb, String name, Double latest, Double previous, String unit) {
-        if (latest == null || previous == null) return false;
-        double delta = latest - previous;
-        if (Math.abs(delta) < 0.01) return false;
-        String direction = delta < 0 ? "dropped" : "increased";
-        sb.append(" ").append(name).append(" ").append(direction).append(" ")
-          .append(String.format("%.1f", Math.abs(delta))).append(" ").append(unit).append(",");
-        return true;
-    }
-
     // --- Gemini API ---
 
     private String callGemini(String prompt) throws Exception {
@@ -269,6 +264,18 @@ public class InsightService {
             throw new IllegalStateException("Gemini API key not configured");
         }
 
+        try {
+            return doGeminiCall(prompt);
+        } catch (RestClientResponseException e) {
+            if (e.getStatusCode().value() == 503) {
+                log.warn("Gemini 503, retrying once: {}", e.getMessage());
+                return doGeminiCall(prompt);
+            }
+            throw e;
+        }
+    }
+
+    private String doGeminiCall(String prompt) throws Exception {
         String url = "https://generativelanguage.googleapis.com/v1beta/models/" + model
                 + ":generateContent?key=" + apiKey;
 
@@ -300,5 +307,20 @@ public class InsightService {
 
     // --- result wrapper ---
 
-    public record InsightResult(String text, LocalDateTime generatedAt, boolean fallback) {}
+    public record InsightResult(String verdict, String text, LocalDateTime generatedAt, boolean fallback) {}
+
+    public static ParsedInsight parseRawText(String raw) {
+        if (raw == null) return new ParsedInsight(null, null);
+        if (raw.startsWith("VERDICT:")) {
+            int verdictEnd = raw.indexOf("INSIGHT:");
+            if (verdictEnd > 0) {
+                String verdict = raw.substring("VERDICT:".length(), verdictEnd).trim();
+                String text = raw.substring(verdictEnd + "INSIGHT:".length()).trim();
+                return new ParsedInsight(verdict, text);
+            }
+        }
+        return new ParsedInsight(null, raw);
+    }
+
+    public record ParsedInsight(String verdict, String text) {}
 }

@@ -2,9 +2,11 @@ package com.joaosousa.aiofitness.controller;
 
 import com.joaosousa.aiofitness.entity.BodyMetrics;
 import com.joaosousa.aiofitness.service.BodyMetricsService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/body-metrics")
@@ -17,8 +19,9 @@ public class BodyMetricsController {
     }
 
     @GetMapping
-    public List<BodyMetrics> findAll() {
-        return bodyMetricsService.findAll();
+    public Page<BodyMetrics> findAll(
+            @PageableDefault(size = Integer.MAX_VALUE, sort = "measuredOn", direction = Sort.Direction.ASC) Pageable pageable) {
+        return bodyMetricsService.findAll(pageable);
     }
 
     @PostMapping

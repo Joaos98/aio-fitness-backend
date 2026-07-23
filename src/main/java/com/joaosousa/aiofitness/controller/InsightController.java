@@ -29,10 +29,12 @@ public class InsightController {
             return null;
         }
         BodyMetrics latest = all.get(0);
+        InsightService.ParsedInsight parsed = InsightService.parseRawText(latest.getInsightText());
         return new InsightResponse(
-            latest.getInsightText(),
+            parsed.verdict(),
+            parsed.text(),
             latest.getInsightGeneratedAt(),
-            latest.getInsightText() != null && latest.getInsightText().contains("Keep logging consistently and a deeper analysis will appear here")
+            false
         );
     }
 
@@ -46,10 +48,13 @@ public class InsightController {
         BodyMetrics entry = all.get(0);
         InsightService.InsightResult result = insightService.generateInsight(entry);
 
-        entry.setInsightText(result.text());
+        String storedText = result.verdict() != null
+                ? "VERDICT:" + result.verdict() + "\nINSIGHT:" + result.text()
+                : result.text();
+        entry.setInsightText(storedText);
         entry.setInsightGeneratedAt(result.generatedAt());
         bodyMetricsRepository.save(entry);
 
-        return new InsightResponse(result.text(), result.generatedAt(), result.fallback());
+        return new InsightResponse(result.verdict(), result.text(), result.generatedAt(), result.fallback());
     }
 }

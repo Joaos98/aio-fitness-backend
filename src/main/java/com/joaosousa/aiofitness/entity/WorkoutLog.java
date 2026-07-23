@@ -24,6 +24,4 @@ public class WorkoutLog {
 
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
-
-    private Integer calories;
 }

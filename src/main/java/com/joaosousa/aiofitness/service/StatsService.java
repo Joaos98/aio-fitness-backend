@@ -48,8 +48,7 @@ public class StatsService {
                 workoutLogRepository.sumDuration(monthStart, monthEnd) != null
                         ? workoutLogRepository.sumDuration(monthStart, monthEnd) : 0L,
                 workoutLogRepository.sumDuration(yearStart, yearEnd) != null
-                        ? workoutLogRepository.sumDuration(yearStart, yearEnd) : 0L,
-                workoutLogRepository.averageCalories(monthStart, monthEnd)
+                        ? workoutLogRepository.sumDuration(yearStart, yearEnd) : 0L
         );
 
         // body composition stats
