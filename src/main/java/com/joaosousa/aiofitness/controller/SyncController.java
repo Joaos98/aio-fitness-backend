@@ -33,10 +33,7 @@ public class SyncController {
     @PostMapping
     public SyncResponse sync(@RequestBody SyncRequest request,
                              @RequestHeader(value = "X-API-Key", required = false) String apiKey) {
-        log.info("Received sync request with X-API-Key: [{}] (length={})", apiKey, apiKey != null ? apiKey.length() : 0);
-        log.info("Expected API key: [{}] (length={})", syncApiKey, syncApiKey != null ? syncApiKey.length() : 0);
         if (!syncApiKey.equals(apiKey)) {
-            log.warn("API key mismatch: expected=[{}], got=[{}]", syncApiKey, apiKey);
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or missing API key");
         }
         return syncService.sync(request);
